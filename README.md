@@ -1,66 +1,118 @@
-<div align="center"> <a href="https://genezio.com/">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/genez-io/graphics/raw/HEAD/svg/Icon_Genezio_White.svg">
-    <source media="(prefers-color-scheme: light)" srcset="https://github.com/genez-io/graphics/raw/HEAD/svg/Icon_Genezio_Black.svg">
-    <img alt="genezio logo" src="https://github.com/genez-io/graphics/raw/HEAD/svg/Icon_Genezio_Black.svg" height="100" >
-  </picture>
- </div>
+# NEXUS//OS
 
-<div align="center">
+Plataforma modular de monitorización y simulación de arbitraje con dashboard en tiempo real.
+La operación real permanece deshabilitada por defecto: el sistema detecta oportunidades, aplica
+controles de riesgo, ejecuta operaciones simuladas y permite backtesting antes de usar capital.
 
-[![Join our community](https://img.shields.io/discord/1024296197575422022?style=social&label=Join%20our%20community%20&logo=discord&labelColor=6A7EC2)](https://discord.gg/uc9H5YKjXv)
-[![Follow @geneziodev](https://img.shields.io/twitter/url/https/twitter.com/geneziodev.svg?style=social&label=Follow%20%40geneziodev)](https://twitter.com/geneziodev)
+## Arquitectura
 
-</div>
+```text
+Next.js dashboard
+    │ REST
+FastAPI + WebSocket
+    ├── conectores normalizados
+    ├── motor de mercado
+    ├── detector de oportunidades
+    ├── gestión de riesgo
+    ├── simulación y backtesting
+    └── eventos y métricas
+         ├── TimescaleDB
+         ├── Redis
+         ├── NATS
+         ├── Prometheus
+         ├── Grafana
+         └── Loki
+```
 
-# Genezio FaaS Getting Started
+### Componentes
 
-In the `index.mjs` file, you will see the implementation of a function that writes something to the console and returns a 200 page with a simple message.
+- `pages/`, `components/`: dashboard NEXUS y panel de arbitraje.
+- `backend/app/connectors/`: conectores con interfaz uniforme y telemetría de latencia.
+- `backend/app/services/market.py`: recopilación asíncrona y normalización.
+- `backend/app/services/opportunities.py`: spread neto de comisiones, slippage y red.
+- `backend/app/services/risk.py`: límites de exposición, pérdidas y rentabilidad mínima.
+- `backend/app/services/backtesting.py`: backtesting reproducible.
+- `backend/app/services/infrastructure.py`: persistencia de eventos, caché y NATS.
+- `tools/arbitrage/`: scanner EVM y contrato experimental recuperados del proyecto original.
+- `infra/`: Prometheus, Grafana y Loki.
 
-You can preview the function and add a `?name=` URL parameter to see how it works.
+## Inicio rápido con Docker
 
-Each function is exposed as an HTTP endpoint and can be called from a third-party application.
+```bash
+docker compose up --build
+```
 
-You can add new functions (new mjs files), but you'll need to add them in the functions section of genezio.yaml to ensure they are deployed and exposed.
+Servicios:
 
-# Deploy
-:rocket: You can deploy your own version of the template to Genezio with one click:
+| Servicio | URL |
+| --- | --- |
+| Dashboard | `http://localhost:3000` |
+| API / OpenAPI | `http://localhost:8000/docs` |
+| Prometheus | `http://localhost:9090` |
+| Grafana | `http://localhost:3002` |
+| NATS monitoring | `http://localhost:8222` |
 
-[![Deploy to Genezio](https://raw.githubusercontent.com/Genez-io/graphics/main/svg/deploy-button.svg)](https://app.genez.io/start/deploy?repository=https://github.com/Genez-io/faas-getting-started)
+Grafana usa `admin` / `admin` únicamente para desarrollo local.
 
+## Desarrollo local
 
-## Genezio CLI Commands
+Requisitos: Node.js 20.19 o superior, Python 3.12 y Docker Compose.
 
-Genezio also provides a CLI tool that you can use to deploy your project from your machine.
-All commands are run from the root of the project, from a terminal:
+```bash
+npm ci
+python3.12 -m venv backend/.venv
+backend/.venv/bin/pip install -e './backend[dev]'
+```
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install -g genezio`  | Installs genezio globally                        |
-| `genezio login`           | Logs in to genezio                               |
-| `genezio local`           | Starts a local server                            |
-| `genezio deploy`          | Deploys a production project                     |
-| `genezio --help`          | Get help using genezio                           |
+Terminal 1:
 
-## Learn more
+```bash
+cd backend
+.venv/bin/uvicorn app.main:app --reload
+```
 
-To learn more about Genezio, take a look at the following resources:
+Terminal 2:
 
-- [Official genezio documentation](https://genezio.com/docs)
-- [Tutorials](https://genezio.com/blog)
+```bash
+npm run dev
+```
 
-## Contact
+Sin Docker, la API funciona con almacenamiento en memoria y conectores simulados. Para activar
+PostgreSQL, Redis y NATS, copia `backend/.env.example` a `backend/.env` y configura
+`NEXUS_INFRASTRUCTURE_ENABLED=true`.
 
-If you need support or you have any questions, please join us in our [Discord channel](https://discord.gg/uc9H5YKjXv). We'd love to chat!
+## API
 
-## Built With
+- `GET /health`, `GET /ready`
+- `GET /api/v1/status`
+- `GET /api/v1/market/quotes`
+- `GET /api/v1/opportunities`
+- `GET /api/v1/trades`
+- `GET /api/v1/alerts`
+- `GET|PUT /api/v1/strategy`
+- `GET|PUT /api/v1/risk`
+- `POST /api/v1/backtests/run`
+- `WS /ws/market`
+- `GET /metrics`
 
-- [Genezio](https://genezio.com/)
-- [Node.JS](https://nodejs.org/en/)
+## Calidad
 
-***
+```bash
+npm run lint
+npm run typecheck
+npm run build
+backend/.venv/bin/ruff check backend
+backend/.venv/bin/pytest backend
+docker compose config
+```
 
-<div align="center"> <a href="https://genezio.com/">
-  <p>Built with Genezio with ❤️ </p>
-  <img alt="genezio logo" src="https://raw.githubusercontent.com/Genez-io/graphics/main/svg/powered_by_genezio.svg" height="40">
-</div>
+## Seguridad y operación real
+
+- `NEXUS_LIVE_TRADING_ENABLED=false` es el valor predeterminado.
+- No se incluyen claves privadas ni credenciales reales.
+- No existe garantía de rentabilidad. Los resultados simulados no representan ejecución real.
+- Antes de habilitar capital: validar conectores reales, MEV, liquidez, slippage, gas, límites,
+  contratos desplegados, alertas y procedimientos de parada de emergencia.
+
+El módulo de `tools/arbitrage/` es experimental y está separado del API principal. Debe mantenerse
+en simulación hasta completar auditorías de contrato, pruebas en testnet y validación operacional.

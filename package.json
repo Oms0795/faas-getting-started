@@ -1,13 +1,29 @@
 {
-  "name": "faas-getting-started",
+  "name": "nexus-os",
   "version": "1.0.0",
-  "description": "A getting started template for Genezio Functions",
-  "type": "module",
-  "main": "index.mjs",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run lint && npm run typecheck"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "dependencies": {
+    "next": "16.2.10",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "20.17.24",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "eslint": "9.39.1",
+    "eslint-config-next": "16.2.10",
+    "typescript": "5.8.2"
+  },
+  "overrides": {
+    "postcss": "8.5.10"
+  }
 }
