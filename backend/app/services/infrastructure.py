@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import UTC, datetime
 
 import nats
@@ -8,6 +9,8 @@ from sqlalchemy import JSON, Column, DateTime, MetaData, String, Table, insert
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from app.config import Settings
+
+logger = logging.getLogger(__name__)
 
 metadata = MetaData()
 market_events = Table(
@@ -84,18 +87,33 @@ class InfrastructureServices:
     async def publish(self, payload: dict[str, object]) -> None:
         encoded = json.dumps(payload, default=str).encode()
         if self.cache is not None:
-            await self.cache.set("nexus:last_market_event", encoded, ex=60)
+            try:
+                await self.cache.set("nexus:last_market_event", encoded, ex=60)
+                self.health["redis"] = "connected"
+            except Exception:
+                self.health["redis"] = "unavailable"
+                logger.exception("Failed to publish market event to Redis")
         if self.message_bus is not None:
-            await self.message_bus.publish("nexus.market.updates", encoded)
+            try:
+                await self.message_bus.publish("nexus.market.updates", encoded)
+                self.health["nats"] = "connected"
+            except Exception:
+                self.health["nats"] = "unavailable"
+                logger.exception("Failed to publish market event to NATS")
         if self.database is not None:
-            async with self.database.begin() as connection:
-                await connection.execute(
-                    insert(market_events).values(
-                        created_at=datetime.now(UTC),
-                        event_type=str(payload.get("type", "unknown")),
-                        payload=payload,
+            try:
+                async with self.database.begin() as connection:
+                    await connection.execute(
+                        insert(market_events).values(
+                            created_at=datetime.now(UTC),
+                            event_type=str(payload.get("type", "unknown")),
+                            payload=payload,
+                        )
                     )
-                )
+                self.health["database"] = "connected"
+            except Exception:
+                self.health["database"] = "unavailable"
+                logger.exception("Failed to persist market event")
 
     async def stop(self) -> None:
         if self.message_bus is not None:

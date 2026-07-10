@@ -39,7 +39,9 @@ FastAPI + WebSocket
 ## Inicio rápido con Docker
 
 ```bash
-docker compose up --build
+cp .env.example .env
+# Sustituye los valores "replace-with..." por secretos aleatorios.
+docker compose --env-file .env up --build
 ```
 
 Servicios:
@@ -52,7 +54,8 @@ Servicios:
 | Grafana | `http://localhost:3002` |
 | NATS monitoring | `http://localhost:8222` |
 
-Grafana usa `admin` / `admin` únicamente para desarrollo local.
+Grafana escucha solamente en localhost, requiere la contraseña configurada en `.env` y no
+permite acceso anónimo.
 
 ## Desarrollo local
 
@@ -95,6 +98,9 @@ PostgreSQL, Redis y NATS, copia `backend/.env.example` a `backend/.env` y config
 - `WS /ws/market`
 - `GET /metrics`
 
+Las operaciones `PUT` requieren el header `X-Nexus-Admin-Key` con el valor configurado en
+`NEXUS_ADMIN_API_KEY`.
+
 ## Calidad
 
 ```bash
@@ -103,7 +109,7 @@ npm run typecheck
 npm run build
 backend/.venv/bin/ruff check backend
 backend/.venv/bin/pytest backend
-docker compose config
+docker compose --env-file .env.example config
 ```
 
 ## Seguridad y operación real

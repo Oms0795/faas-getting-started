@@ -1,5 +1,6 @@
 import asyncio
 import contextlib
+import logging
 import random
 from collections import deque
 from datetime import UTC, datetime
@@ -21,6 +22,8 @@ from app.services.infrastructure import InfrastructureServices
 from app.services.market import MarketEngine
 from app.services.opportunities import OpportunityEngine
 from app.services.risk import RiskEngine
+
+logger = logging.getLogger(__name__)
 
 
 class PlatformRuntime:
@@ -71,7 +74,16 @@ class PlatformRuntime:
     async def _run(self) -> None:
         while True:
             await asyncio.sleep(self.settings.scan_interval_seconds)
-            await self.scan_once()
+            try:
+                await self.scan_once()
+            except Exception as error:
+                logger.exception("Market scan iteration failed")
+                self.alerts.append(
+                    Alert(
+                        severity="error",
+                        message=f"Market scan iteration failed: {type(error).__name__}",
+                    )
+                )
 
     async def scan_once(self) -> None:
         with SCAN_DURATION.time():

@@ -6,7 +6,7 @@ install:
 	backend/.venv/bin/pip install -e './backend[dev]'
 
 dev:
-	docker compose up --build
+	docker compose --env-file .env up --build
 
 backend:
 	cd backend && .venv/bin/uvicorn app.main:app --reload
@@ -26,7 +26,7 @@ build:
 	npm run build
 
 compose-up:
-	docker compose up --build -d
+	docker compose --env-file .env up --build -d
 
 compose-down:
-	docker compose down
+	docker compose --env-file .env down

@@ -6,6 +6,7 @@ from app.main import create_app
 
 def build_client() -> TestClient:
     settings = Settings(
+        admin_api_key="test-admin-key",
         scan_interval_seconds=60,
         execution_cooldown_seconds=0,
         min_profit_usd=0,
@@ -28,11 +29,22 @@ def test_strategy_and_risk_can_be_updated() -> None:
     with build_client() as client:
         strategy = client.get("/api/v1/strategy").json()
         strategy["notional_usd"] = 2500
-        assert client.put("/api/v1/strategy", json=strategy).json()["notional_usd"] == 2500
+        assert client.put("/api/v1/strategy", json=strategy).status_code == 401
+        response = client.put(
+            "/api/v1/strategy",
+            json=strategy,
+            headers={"X-Nexus-Admin-Key": "test-admin-key"},
+        )
+        assert response.json()["notional_usd"] == 2500
 
         limits = client.get("/api/v1/risk").json()
         limits["max_notional_usd"] = 5000
-        assert client.put("/api/v1/risk", json=limits).json()["max_notional_usd"] == 5000
+        response = client.put(
+            "/api/v1/risk",
+            json=limits,
+            headers={"X-Nexus-Admin-Key": "test-admin-key"},
+        )
+        assert response.json()["max_notional_usd"] == 5000
 
 
 def test_backtest_is_deterministic() -> None:

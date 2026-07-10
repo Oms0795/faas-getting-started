@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -13,6 +14,7 @@ class Settings(BaseSettings):
     app_name: str = "NEXUS Arbitrage API"
     environment: str = "development"
     log_level: str = "INFO"
+    admin_api_key: SecretStr | None = None
     cors_origins: str = "http://localhost:3000"
     scan_interval_seconds: float = 1.0
     symbols: str = "ETH/USDC,BTC/USDC,SOL/USDC"

@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from app.api.dependencies import get_runtime
+from app.api.dependencies import get_runtime, require_admin_api_key
 from app.schemas import RiskLimits, StrategyConfig
 from app.services.risk import RiskEngine
 from app.services.runtime import PlatformRuntime
@@ -16,7 +16,11 @@ async def get_risk(runtime: Runtime) -> RiskLimits:
     return runtime.risk_limits
 
 
-@router.put("/risk", response_model=RiskLimits)
+@router.put(
+    "/risk",
+    response_model=RiskLimits,
+    dependencies=[Depends(require_admin_api_key)],
+)
 async def update_risk(
     limits: RiskLimits,
     runtime: Runtime,
@@ -31,7 +35,11 @@ async def get_strategy(runtime: Runtime) -> StrategyConfig:
     return runtime.strategy
 
 
-@router.put("/strategy", response_model=StrategyConfig)
+@router.put(
+    "/strategy",
+    response_model=StrategyConfig,
+    dependencies=[Depends(require_admin_api_key)],
+)
 async def update_strategy(
     strategy: StrategyConfig,
     runtime: Runtime,
