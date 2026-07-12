@@ -47,8 +47,8 @@ latencies because simulated market scans update them continuously.
 
 - If the UI shows `API desconectada`, confirm FastAPI is listening on port 8000
   and the frontend was started with `NEXUS_API_URL=http://127.0.0.1:8000`.
-- If the demo login is already bypassed, clear the `nexus_user` local-storage
-  key or use the visible `cerrar sesión` control.
+- If the demo login is already bypassed, clear the `nexus_user` key from browser
+  `localStorage` or use the visible `cerrar sesión` control.
 - A GitHub Actions job with zero steps and no runner might not have executed.
   Inspect its check-run annotations for account, billing, or infrastructure
   errors before treating it as an application failure.
