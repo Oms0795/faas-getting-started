@@ -1,0 +1,39 @@
+[project]
+name = "nexus-arbitrage-api"
+version = "1.0.0"
+description = "Event-driven market monitoring and arbitrage simulation API for NEXUS//OS"
+requires-python = ">=3.12"
+dependencies = [
+  "asyncpg==0.30.0",
+  "fastapi==0.115.12",
+  "nats-py==2.9.0",
+  "opentelemetry-api==1.30.0",
+  "opentelemetry-exporter-otlp==1.30.0",
+  "opentelemetry-instrumentation-fastapi==0.51b0",
+  "opentelemetry-sdk==1.30.0",
+  "prometheus-client==0.21.1",
+  "pydantic-settings==2.8.1",
+  "redis==5.2.1",
+  "sqlalchemy[asyncio]==2.0.38",
+  "uvicorn[standard]==0.34.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx==0.28.1",
+  "pytest==8.3.5",
+  "pytest-asyncio==0.25.3",
+  "ruff==0.9.10",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]
